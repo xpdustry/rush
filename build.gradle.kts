@@ -78,9 +78,17 @@ indra {
 
     configurePublications {
         pom {
+            organization {
+                name.set("Omega")
+            }
+
             developers {
                 developer {
-                    id.set(metadata.author)
+                    id.set("QmelZ")
+                }
+
+                developer {
+                    id.set("Phinner")
                 }
             }
         }

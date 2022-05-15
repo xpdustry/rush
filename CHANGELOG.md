@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-### Changed
+### Added
 
-- Updated `README.md` to be more explicit.
-
-## [v2.4.0] - 2022-05-14
-
-### Changed
-
-- Improved the usability of the Template.
+- Invincible source blocks.
