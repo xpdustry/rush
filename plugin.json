@@ -3,7 +3,7 @@
   "displayName": "Omega RushPlugin",
   "author": "Omega",
   "description": "A simple plugin for Rush.",
-  "version": "0.1.0-SNAPSHOT",
+  "version": "0.1.0",
   "minGameVersion": "126",
   "hidden": true,
   "java": true,
