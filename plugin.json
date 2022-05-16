@@ -9,5 +9,7 @@
   "java": true,
   "main": "me.mindustry.rush.RushPlugin",
   "repo": "Xpdustry/OmegaRushPlugin",
-  "dependencies": []
+  "dependencies": [
+    "omega-leaderboard"
+  ]
 }

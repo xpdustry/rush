@@ -19,6 +19,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      ORG_GRADLE_PROJECT_omegaUsername: "${{ secrets.OMEGA_REPO_USERNAME }}"
+      ORG_GRADLE_PROJECT_omegaPassword: "${{ secrets.OMEGA_REPO_PASSWORD }}"
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3

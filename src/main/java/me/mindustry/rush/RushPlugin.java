@@ -4,6 +4,9 @@ import arc.Events;
 import arc.util.Interval;
 import arc.util.Strings;
 import arc.util.Time;
+import me.mindustry.leaderboard.LeaderboardPlugin;
+import me.mindustry.leaderboard.model.LeaderboardPoints;
+import me.mindustry.leaderboard.repository.PointsRegistry;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.game.EventType;
@@ -11,6 +14,7 @@ import mindustry.game.Gamemode;
 import mindustry.game.Rules;
 import mindustry.game.Team;
 import mindustry.gen.Call;
+import mindustry.gen.Groups;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration;
 import mindustry.world.Block;
@@ -23,10 +27,19 @@ public class RushPlugin extends Plugin {
     private static final int UPDATE_TIMER = 0;
     private static final int COUNTDOWN_TIMER = 1;
 
+    private static final LeaderboardPoints RUSH_VICTORY_POINTS = LeaderboardPoints.of("Victory", "Win a game of Rush.", +100);
+    private static final LeaderboardPoints RUSH_DEFEAT_POINTS = LeaderboardPoints.of("Defeat", "Loose a game of Rush", -100);
+
     private final Interval timers = new Interval(2);
 
     @Override
     public void init() {
+        registerPoints();
+        LeaderboardPlugin.addPointsRegistry(PointsRegistry.of(
+                RUSH_VICTORY_POINTS,
+                RUSH_DEFEAT_POINTS
+        ));
+
         // Makes the player unable to destroy sources blocks
         Vars.netServer.admins.addActionFilter(action -> {
             return !isActive() || action.type != Administration.ActionType.breakBlock || !isSourceBlock(action.block);
@@ -83,5 +96,16 @@ public class RushPlugin extends Plugin {
         rules.bannedBlocks.add(Blocks.foreshadow);
         rules.logicUnitBuild = false;
         return rules;
+    }
+
+    private void registerPoints() {
+        Events.on(EventType.GameOverEvent.class, e -> {
+            if (isActive()) {
+                Groups.player.each(p -> LeaderboardPlugin
+                        .getLeaderboardService()
+                        .grantPoints(p, p.team() == e.winner? RUSH_VICTORY_POINTS : RUSH_DEFEAT_POINTS)
+                );
+            }
+        });
     }
 }

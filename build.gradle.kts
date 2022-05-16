@@ -23,9 +23,18 @@ toxopid {
 
 repositories {
     mavenCentral()
+    maven("https://repo.xpdustry.fr/private") {
+        mavenContent { releasesOnly() }
+        credentials {
+            username = findProperty("omegaUsername") as String
+            password = findProperty("omegaPassword") as String
+        }
+    }
 }
 
 dependencies {
+    compileOnly("me.mindustry:leaderboard:3.1.0")
+
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")

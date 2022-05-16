@@ -10,3 +10,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Invincible source blocks.
+
+- Added Leaderboard plugin.
