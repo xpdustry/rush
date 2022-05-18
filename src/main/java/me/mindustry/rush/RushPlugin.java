@@ -1,5 +1,6 @@
 package me.mindustry.rush;
 
+import arc.Core;
 import arc.Events;
 import arc.util.Interval;
 import arc.util.Strings;
@@ -18,6 +19,7 @@ import mindustry.gen.Groups;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration;
 import mindustry.world.Block;
+import org.jetbrains.annotations.NotNull;
 
 
 @SuppressWarnings("unused")
@@ -34,6 +36,7 @@ public class RushPlugin extends Plugin {
 
     @Override
     public void init() {
+        // Register the points
         registerPoints();
         LeaderboardPlugin.addPointsRegistry(PointsRegistry.of(
                 RUSH_VICTORY_POINTS,
@@ -43,6 +46,15 @@ public class RushPlugin extends Plugin {
         // Makes the player unable to destroy sources blocks
         Vars.netServer.admins.addActionFilter(action -> {
             return !isActive() || action.type != Administration.ActionType.breakBlock || !isSourceBlock(action.block);
+        });
+
+        // Source block dupe
+        Events.on(EventType.PickupEvent.class, e -> {
+            if (e.build != null && isSourceBlock(e.build.block())) {
+                Core.app.post(() -> {
+                    Call.setTile(e.build.tile(), e.build.block(), e.build.team(), e.build.rotation());
+                });
+            }
         });
 
         Events.on(EventType.PlayerJoin.class, e -> {
@@ -58,11 +70,6 @@ public class RushPlugin extends Plugin {
             if (isActive()) {
                 timers.reset(COUNTDOWN_TIMER, 0);
                 Vars.state.rules = createRushRules();
-                Call.setRules(Vars.state.rules);
-                Vars.world.tiles.forEach(tile -> {
-                    // No way a player can destroy this in regular circumstances...
-                    if (isSourceBlock(tile.block())) tile.build.health = Float.MAX_VALUE;
-                });
             }
         });
 
@@ -86,15 +93,16 @@ public class RushPlugin extends Plugin {
         return Vars.state.rules.pvp;
     }
 
-    private boolean isSourceBlock(final Block block) {
+    private boolean isSourceBlock(final @NotNull Block block) {
         return block == Blocks.itemSource || block == Blocks.powerSource || block == Blocks.liquidSource;
     }
 
-    private Rules createRushRules() {
+    private @NotNull Rules createRushRules() {
         final var rules = new Rules();
         Gamemode.pvp.apply(rules);
         rules.bannedBlocks.add(Blocks.foreshadow);
         rules.logicUnitBuild = false;
+        rules.damageExplosions = false;
         return rules;
     }
 

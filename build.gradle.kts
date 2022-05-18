@@ -68,6 +68,18 @@ tasks.create("getArtifactPath") {
     doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
 }
 
+val relocate = tasks.create<com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation>("relocateShadowJar") {
+    target = tasks.shadowJar.get()
+    prefix = project.property("props.root-package").toString() + ".shadow"
+}
+
+tasks.shadowJar {
+    // Run relocation before shadow
+    dependsOn(relocate)
+    // Reduces shadow jar size by removing unused classes
+    minimize()
+}
+
 indra {
     javaVersions {
         target(17)
