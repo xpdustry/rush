@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [v0.2.0] - 2022-05-18
 
+### Changed
+
 - Replaced invincible blocks with duplicable blocks.
 
 - Reintroduced source blocks dupe.
