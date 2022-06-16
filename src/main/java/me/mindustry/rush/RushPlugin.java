@@ -2,12 +2,10 @@ package me.mindustry.rush;
 
 import arc.Core;
 import arc.Events;
+import arc.util.Align;
 import arc.util.Interval;
 import arc.util.Strings;
 import arc.util.Time;
-import me.mindustry.leaderboard.LeaderboardPlugin;
-import me.mindustry.leaderboard.model.LeaderboardPoints;
-import me.mindustry.leaderboard.repository.PointsRegistry;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.game.EventType;
@@ -15,53 +13,49 @@ import mindustry.game.Gamemode;
 import mindustry.game.Rules;
 import mindustry.game.Team;
 import mindustry.gen.Call;
-import mindustry.gen.Groups;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration;
 import mindustry.world.Block;
 import org.jetbrains.annotations.NotNull;
-
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public class RushPlugin extends Plugin {
+public final class RushPlugin extends Plugin {
 
     private static final float GAME_DURATION = 20.0F;
     private static final int UPDATE_TIMER = 0;
     private static final int COUNTDOWN_TIMER = 1;
 
-    private static final LeaderboardPoints RUSH_VICTORY_POINTS = LeaderboardPoints.of("Victory", "Win a game of Rush.", +100);
-    private static final LeaderboardPoints RUSH_DEFEAT_POINTS = LeaderboardPoints.of("Defeat", "Loose a game of Rush", -100);
-
+    private final RushPointsRegistry registry = new RushPointsRegistry();
     private final Interval timers = new Interval(2);
+
+    public static boolean isActive() {
+        return Vars.state.rules.pvp;
+    }
 
     @Override
     public void init() {
         // Register the points
-        registerPoints();
-        LeaderboardPlugin.addPointsRegistry(PointsRegistry.of(
-                RUSH_VICTORY_POINTS,
-                RUSH_DEFEAT_POINTS
-        ));
+        registry.register();
 
         // Makes the player unable to destroy sources blocks
         Vars.netServer.admins.addActionFilter(action -> {
-            return !isActive() || action.type != Administration.ActionType.breakBlock || !isSourceBlock(action.block);
+            return !isActive() || action.type == Administration.ActionType.configure || !isSourceBlock(action.block);
         });
 
         // Source block dupe
         Events.on(EventType.PickupEvent.class, e -> {
-            if (e.build != null && isSourceBlock(e.build.block())) {
-                Core.app.post(() -> {
-                    Call.setTile(e.build.tile(), e.build.block(), e.build.team(), e.build.rotation());
-                });
+            if (isActive() && isSourceBlock(e.build.block())) {
+                Core.app.post(() -> Call.setTile(e.build.tile(), e.build.block(), e.build.team(), e.build.rotation()));
             }
         });
 
         Events.on(EventType.PlayerJoin.class, e -> {
             if (isActive()) {
-                Call.infoMessage(e.player.con(), ""
-                        + "[gold]Welcome to RUSH, [green]your goal as a team is to kill other teams."
-                        + "If the timer on the bottom runs out, you all Lose!"
+                Call.infoMessage(e.player.con(), """
+                        [gold]Welcome to RUSH, [green]your goal as a team is to kill other teams.
+                        If the timer on the bottom runs out, you all Lose!
+                        """
                 );
             }
         });
@@ -75,7 +69,7 @@ public class RushPlugin extends Plugin {
 
         Events.run(EventType.Trigger.update, () -> {
             if (isActive() && timers.get(UPDATE_TIMER, Time.toSeconds)) {
-                Call.infoPopup("[cyan]Timer: " + Strings.formatMillis(getRemainingTime()), 1, 4, 0, 0, 0, 0);
+                Call.infoPopup("[cyan]Timer: " + Strings.formatMillis(getRemainingTime()), 1, Align.bottom | Align.center, 0, 0, 0, 0);
             }
 
             if (isActive() && timers.get(COUNTDOWN_TIMER, GAME_DURATION * Time.toMinutes)) {
@@ -89,11 +83,7 @@ public class RushPlugin extends Plugin {
         return Math.max((long) (((GAME_DURATION * Time.toMinutes) - timers.getTime(COUNTDOWN_TIMER)) / Time.toSeconds * 1000L), 0L);
     }
 
-    private boolean isActive() {
-        return Vars.state.rules.pvp;
-    }
-
-    private boolean isSourceBlock(final @NotNull Block block) {
+    private boolean isSourceBlock(final @Nullable Block block) {
         return block == Blocks.itemSource || block == Blocks.powerSource || block == Blocks.liquidSource;
     }
 
@@ -104,16 +94,5 @@ public class RushPlugin extends Plugin {
         rules.logicUnitBuild = false;
         rules.damageExplosions = false;
         return rules;
-    }
-
-    private void registerPoints() {
-        Events.on(EventType.GameOverEvent.class, e -> {
-            if (isActive()) {
-                Groups.player.each(p -> LeaderboardPlugin
-                        .getLeaderboardService()
-                        .grantPoints(p, p.team() == e.winner? RUSH_VICTORY_POINTS : RUSH_DEFEAT_POINTS)
-                );
-            }
-        });
     }
 }
