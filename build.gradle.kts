@@ -100,7 +100,7 @@ indra {
     configurePublications {
         pom {
             organization {
-                name.set("Omega")
+                name.set("Omega-Network")
             }
 
             developers {
