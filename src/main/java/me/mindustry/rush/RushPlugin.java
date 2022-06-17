@@ -2,6 +2,7 @@ package me.mindustry.rush;
 
 import arc.Core;
 import arc.Events;
+import arc.struct.Seq;
 import arc.util.Align;
 import arc.util.Interval;
 import arc.util.Strings;
@@ -14,7 +15,6 @@ import mindustry.game.Rules;
 import mindustry.game.Team;
 import mindustry.gen.Call;
 import mindustry.mod.Plugin;
-import mindustry.net.Administration;
 import mindustry.world.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,12 +40,18 @@ public final class RushPlugin extends Plugin {
 
         // Makes the player unable to destroy sources blocks
         Vars.netServer.admins.addActionFilter(action -> {
-            return !isActive() || action.type == Administration.ActionType.configure || !isSourceBlock(action.block);
+            return !isActive() || switch (action.type) {
+                case placeBlock -> action.tile
+                        .getLinkedTilesAs(action.block, new Seq<>())
+                        .find(t -> isSourceBlock(t.block())) == null;
+                case breakBlock -> !isSourceBlock(action.block);
+                default -> true;
+            };
         });
 
         // Source block dupe
         Events.on(EventType.PickupEvent.class, e -> {
-            if (isActive() && isSourceBlock(e.build.block())) {
+            if (isActive() && e.build != null && isSourceBlock(e.build.block())) {
                 Core.app.post(() -> Call.setTile(e.build.tile(), e.build.block(), e.build.team(), e.build.rotation()));
             }
         });
