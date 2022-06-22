@@ -69,7 +69,7 @@ public final class RushPlugin extends Plugin {
         Events.on(EventType.PlayEvent.class, e -> {
             if (isActive()) {
                 timers.reset(COUNTDOWN_TIMER, 0);
-                Vars.state.rules = createRushRules();
+                applyRushRules(Vars.state.rules);
             }
         });
 
@@ -93,12 +93,9 @@ public final class RushPlugin extends Plugin {
         return block == Blocks.itemSource || block == Blocks.powerSource || block == Blocks.liquidSource;
     }
 
-    private @NotNull Rules createRushRules() {
-        final var rules = new Rules();
-        Gamemode.pvp.apply(rules);
+    private void applyRushRules(final @NotNull Rules rules) {
         rules.bannedBlocks.add(Blocks.foreshadow);
         rules.logicUnitBuild = false;
         rules.damageExplosions = false;
-        return rules;
     }
 }
