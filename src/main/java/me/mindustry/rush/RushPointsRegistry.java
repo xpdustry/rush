@@ -14,19 +14,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class RushPointsRegistry implements PointsRegistry {
+final class RushPointsRegistry implements PointsRegistry {
 
     private static final LeaderboardPoints
             RUSH_VICTORY_POINTS = LeaderboardPoints.of("Victory", "Win a game of Rush", +100),
             RUSH_DEFEAT_POINTS = LeaderboardPoints.of("Defeat", "Loose a game of Rush", -100);
 
-    /** Contais the players which already have been points granted during the current game. */
+    /** Contains the players which already have been points granted during the current game. */
     private final Set<String> grants = new HashSet<>();
 
-    public void register() {
-        LeaderboardPlugin.addPointsRegistry(this);
-
+    RushPointsRegistry() {
         Events.on(EventType.BlockDestroyEvent.class, e -> {
+            // Checks if the last core of a team got destroyed...
             if (RushPlugin.isActive() && e.tile.block() instanceof CoreBlock && e.tile.team().cores().size == 1) {
                 Groups.player.each(
                         p -> p.team() == e.tile.team() && !grants.contains(p.uuid()),

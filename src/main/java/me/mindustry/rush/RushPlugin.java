@@ -7,10 +7,10 @@ import arc.util.Align;
 import arc.util.Interval;
 import arc.util.Strings;
 import arc.util.Time;
+import me.mindustry.leaderboard.LeaderboardPlugin;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.game.EventType;
-import mindustry.game.Gamemode;
 import mindustry.game.Rules;
 import mindustry.game.Team;
 import mindustry.gen.Call;
@@ -26,7 +26,6 @@ public final class RushPlugin extends Plugin {
     private static final int UPDATE_TIMER = 0;
     private static final int COUNTDOWN_TIMER = 1;
 
-    private final RushPointsRegistry registry = new RushPointsRegistry();
     private final Interval timers = new Interval(2);
 
     public static boolean isActive() {
@@ -36,11 +35,11 @@ public final class RushPlugin extends Plugin {
     @Override
     public void init() {
         // Register the points
-        registry.register();
+        LeaderboardPlugin.addPointsRegistry(new RushPointsRegistry());
 
-        // Makes the player unable to destroy sources blocks
+        // Makes the player unable to destroy sources blocks, unless he is an admin
         Vars.netServer.admins.addActionFilter(action -> {
-            return !isActive() || switch (action.type) {
+            return !isActive() || action.player.admin() || switch (action.type) {
                 case placeBlock -> action.tile
                         .getLinkedTilesAs(action.block, new Seq<>())
                         .find(t -> isSourceBlock(t.block())) == null;
@@ -58,7 +57,9 @@ public final class RushPlugin extends Plugin {
 
         Events.on(EventType.PlayerJoin.class, e -> {
             if (isActive()) {
-                Call.infoMessage(e.player.con(), """
+                Call.infoMessage(
+                        e.player.con(),
+                        """
                         [gold]Welcome to RUSH, [green]your goal as a team is to kill other teams.
                         If the timer on the bottom runs out, you all Lose!
                         """
