@@ -5,15 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - yyyy-mm-dd
-
-
 ## [v0.4.0] - 2022-07-13
 
 ### Changes
 
 - Allow admins to destroy source blocks
-
 
 ## [v0.3.1] - 2022-06-22
 
